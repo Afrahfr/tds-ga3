@@ -2,9 +2,12 @@ name: Daily DevSync Update
 
 on:
   schedule:
-    # Runs at 05:30 UTC every day
     - cron: '15 12 * * *'
-  workflow_dispatch: # Allows you to trigger it manually for testing
+  workflow_dispatch: 
+
+# This ensures the Action has permission to write to your repo
+permissions:
+  contents: write
 
 jobs:
   auto-commit:
@@ -13,14 +16,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update log file for 23f2000118@ds.study.iitm.ac.in
+      - name: Update log for 23f2000118@ds.study.iitm.ac.in
         run: |
-          echo "Last automated update: $(date)" > daily_status.txt
+          # Adding a random string or precise nanoseconds ensures the file is ALWAYS different
+          echo "Update recorded at: $(date +'%Y-%m-%d %H:%M:%S:%N')" > daily_status.txt
 
-      - name: Commit and Push changes
+      - name: Commit and Push
         run: |
           git config --local user.email "23f2000118@ds.study.iitm.ac.in"
           git config --local user.name "DevSync Automation"
           git add daily_status.txt
-          git commit -m "Automated daily status update [skip ci]"
+          # The || exit 0 prevents the workflow from failing if there's truly nothing to change
+          git commit -m "Automated daily status update [skip ci]" || exit 0
           git push
